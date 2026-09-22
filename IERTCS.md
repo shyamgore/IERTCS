@@ -86,3 +86,62 @@ Let's discuss about the Expert System and UI part.
 We design it as two separate things: the **Knowledge Base** and the **Inference Engine.**
 
 1. **Knowledge Base Structure**
+
+    Knowledge Base = *Collection of emergency-response rules.*
+
+    We should not hardcode the if-else rules directly into the program.
+
+    Instead:
+
+    Knowledge Base<br>
+    &nbsp; &nbsp;  ↓ <br>
+    Rules stored as data <br>
+    &nbsp; &nbsp; ↓ <br>
+    Inference Engine <br>
+    &nbsp; &nbsp;  ↓ <br>
+    Decision <br>
+
+    For example,
+
+    Store the rule in JSON:
+    ```json
+        {
+            "id": "R01",
+            "conditions": {
+            "type": "accident",
+            "severity": "critical",
+            "people": ">5"
+            },
+            "result": {
+            "services": ["ambulance", "police", "rescue"]
+            }
+        }
+    ```
+    Then the Python *Inference Engine* reads the rules and checks whether the *user's input matches them*.
+
+2. **Inference Engine**
+
+    The Inference Engine is the part that takes the user's input and checks the Knowledge Base to determine what rules apply.
+
+    We choose the inference method, such as forward chaining or backward chaining.
+
+    • **Forward Chaining:** Start with the facts → apply rules → reach a conclusion.
+
+    • **Backward Chaining:** Start with a possible conclusion → work backward to see whether the facts support it.
+
+    For my system, I am using Forward Chaining.
+
+    How It Works
+
+    FACTS <br>
+    &nbsp; &nbsp; ↓ <br>
+    Check rules<br>
+    &nbsp; &nbsp;  ↓ <br>
+    Matching rules <br>
+    &nbsp; &nbsp;  ↓ <br>
+    New conclusions <br>
+    &nbsp; &nbsp;  ↓ <br>
+    Check more rules <br>
+    &nbsp; &nbsp; ↓ <br>
+    Final decision <br>
+    
