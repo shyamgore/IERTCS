@@ -83,7 +83,7 @@ Let's discuss about the Expert System and UI part.
 
 #### **Expert system**
 
-We design it as two separate things: the **Knowledge Base** and the **Inference Engine.**
+We design it as two separate things: the **Knowledge Base** and the **Inference Engine**
 
 1. **Knowledge Base Structure**
 
@@ -119,7 +119,7 @@ We design it as two separate things: the **Knowledge Base** and the **Inference 
     ```
     Then the Python *Inference Engine* reads the rules and checks whether the *user's input matches them*.
 
-2. **Inference Engine**
+2. **Inference Engine structure**
 
     The Inference Engine is the part that takes the user's input and checks the Knowledge Base to determine what rules apply.
 
@@ -144,4 +144,23 @@ We design it as two separate things: the **Knowledge Base** and the **Inference 
     Check more rules <br>
     &nbsp; &nbsp; ↓ <br>
     Final decision <br>
-    
+
+#### UI part
+
+Here we desing the dashbord that will take the inpute form the user and form that input we predicte the service.The **dashboard** provides a **simple interface** for **creating** and **managing emergency requests**.
+
+ • **Emergency Type:** Select the type of emergency. <br>
+ • **Severity:** Select the severity level. <br>
+ • **People Affected:** Enter the number of affected people. <br>
+ • **Generate Response:** Sends the inputs to the Expert System. <br>
+ • **Recommended Services:** Displays the services and number of units required. <br>
+ • **Modify Services:** User can add, remove, or change the quantity of services. <br>
+ • **Confirm Response:** Confirms the final required services and passes them to the next subsystem. <br>
+
+**dashbord desing Ex**
+
+<p align="center">
+<img src="image.png" width="500" >
+</p>
+
+And here the Emergency detection part is clear
