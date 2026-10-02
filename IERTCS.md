@@ -157,10 +157,720 @@ Here we desing the dashbord that will take the inpute form the user and form tha
  • **Modify Services:** User can add, remove, or change the quantity of services. <br>
  • **Confirm Response:** Confirms the final required services and passes them to the next subsystem. <br>
 
-**dashbord desing Ex**
+**Accienent dashbord desing Ex**
 
 <p align="center">
 <img src="image.png" width="500" >
 </p>
 
-And here the Emergency detection part is clear
+## 2. Emergency Vehicle Allocation Engine
+
+### UI Design
+
+The Emergency Vehicle Allocation Engine contains two main types of interfaces:
+
+   1. Central Control Dashboard: It should give the **operator** a live view of the **whole** **simulated city**, not just the currently selected emergency.
+   2. Transport/Vehicle Dashboard:
+
+
+**1. Central Control Dashboard**
+
+The central dashboard provides an overview of all emeargency vehicles operating in the simulated city.
+
+The **Central Control Dashboard** is used by the **emergency operator** to view available vehicles, view emeragnecy place, view the all avaliable hospital and there info,  all police steation and fire stations and manage vehicle allocation.
+
+
+**Important Information**
+
+* Active emergency
+* Required emergency services
+* Available vehicles
+* Vehicle type
+* Vehicle ID
+* Current location
+* Current status
+* Distance from emergency
+* Assignment status
+* Estimated arrival time
+
+The dashboard also contains a **city map** showing:
+
+* Emergency locations
+* Available vehicles
+* Assigned vehicles
+* Hospitals
+* Roads
+* Traffic conditions
+
+    ***Central-Bord should have the accisiablity to the every Vehical, Hospital, Police and fire station***
+
+Main UI Components
+
+<p align="center">
+<img src="Central_Control_Dashboard.png" width="500" >
+</p>
+
+
+**2. Transport / Vehicle oprator profile profile**
+
+The **Transport Dashboard** is used by **individual emergency vehicles** such as ambulances, police vehicles, and rescue vehicles to receive and manage assignments and vehicla speciacs.
+
+
+Oprator have its own vechical profile and he can see it's emegency sevies places. Like a ambulance sould see all hospital althout it way for  form him, and He sould be assosiated with one emergncy sevies palce. Like Ambulance A12 is assosiated with the jai shankar hospital.
+
+So for this we should have our User profile like this
+
+<p align="center">
+<img src="Vehical_Oprator_Profiel.png" width="500" >
+</p>
+The same concept is used for:
+
+* 🚑 Ambulance
+* 🚓 Police Vehicle
+* 🚒 Fire/Rescue Vehicle
+
+However, the information shown can be different depending on the vehicle's capabilities.
+
+**1. Vehicle Allotment Interface**
+
+When the allocation engine selects a vehicle, the corresponding transport receives an assignment.
+
+<p align="center">
+<img src="Vehical_Allotment.png" width="500" >
+</p>
+**2. Vehicle Status** 
+
+Each vehicle maintains a real-time status:
+
+
+| Status          | Meaning                                      |
+| --------------- | -------------------------------------------- |
+| **Available**   | Vehicle can be assigned                      |
+| **Assigned**    | Vehicle has received an emergency assignment |
+| **En Route**    | Vehicle is travelling to the emergency       |
+| **Arrived**     | Vehicle has reached the emergency location   |
+| **Busy**        | Vehicle is currently handling the emergency  |
+| **Unavailable** | Vehicle cannot currently be assigned         |
+
+The status is updated by the transport interface and reflected on the Central Control Dashboard.
+
+**UI Flow**
+
+    System 1
+       ↓
+    Confirmed Required Services
+       ↓
+    Emergency Vehicle Allocation Engine
+       ↓
+    Check Available Vehicles
+       ↓
+    Filter Suitable Vehicles
+       ↓
+    Allocate Vehicles
+       ↓
+    ┌───────────────┬───────────────┬───────────────┐
+    │ Ambulance UI  │  Police UI    │  Rescue UI    │
+    └───────────────┴───────────────┴───────────────┘
+            ↓               ↓               ↓
+         Accept          Accept          Accept
+            └───────────────┼───────────────┘
+                            ↓
+                      Vehicle Dispatched
+
+
+### Computetion For System-2
+
+**1. Constraint Filtering**
+
+The important thing is that constraint filtering is basically a **series of tests applied to every vehicle**. A vehicle survives only if it satisfies all mandatory constraints.
+
+1. We start with the emergency requirements
+
+Suppose System 1 has produced:
+
+```text
+Emergency ID: E102
+Type: Accident
+Severity: Critical
+People affected: 6
+
+Required:
+Ambulance × 3
+Police × 1
+Rescue × 1
+```
+
+System 2 receives this as its input.
+
+---
+
+2. We have a vehicle database
+
+Suppose our simulated city has:
+
+| Vehicle | Type      | Status    | Capability   | Location |
+| ------- | --------- | --------- | ------------ | -------- |
+| A01     | Ambulance | Available | ICU          | Zone 2   |
+| A02     | Ambulance | Busy      | ICU          | Zone 4   |
+| A03     | Ambulance | Available | Basic        | Zone 5   |
+| A04     | Police    | Available | Standard     | Zone 3   |
+| A05     | Ambulance | Available | ICU          | Zone 1   |
+| R01     | Rescue    | Available | Heavy Rescue | Zone 6   |
+
+Now the filtering engine processes these vehicles.
+
+---
+
+# 3. First constraint: Vehicle Type
+
+For the ambulance requirement:
+
+```text
+Required type = Ambulance
+```
+
+The algorithm checks:
+
+```text
+A01 → Ambulance → ✓
+A02 → Ambulance → ✓
+A03 → Ambulance → ✓
+A04 → Police    → ✗
+R01 → Rescue    → ✗
+```
+
+Remaining:
+
+```text
+A01
+A02
+A03
+```
+
+---
+
+# 4. Second constraint: Availability
+
+Now:
+
+```text
+Required status = Available
+```
+
+Check each remaining vehicle:
+
+```text
+A01 → Available → ✓
+A02 → Busy      → ✗
+A03 → Available → ✓
+A05 → Available → ✓
+```
+
+Now:
+
+```text
+A01
+A03
+A05
+```
+
+---
+
+# 5. Third constraint: Capability
+
+Suppose the critical accident requires an ambulance capable of handling serious patients.
+
+We can have a capability requirement such as:
+
+```text
+Required capability = ICU
+```
+
+Then:
+
+```text
+A01 → ICU       → ✓
+A03 → Basic     → ✗
+A05 → ICU       → ✓
+```
+
+Now our eligible set becomes:
+
+```text
+A01
+A05
+```
+
+These are the vehicles that **pass all mandatory constraints**.
+
+---
+
+# 6. Computationally, it looks like this
+
+The important part is that we're not writing:
+
+```python
+if ambulance == A01:
+    ...
+elif ambulance == A02:
+    ...
+```
+
+Instead, we have **generic constraints**.
+
+Conceptually:
+
+```text
+Vehicle
+   ↓
+Is type correct?
+   ↓ YES
+Is it available?
+   ↓ YES
+Does capability match?
+   ↓ YES
+Is it eligible?
+```
+
+For each vehicle:
+
+```text
+                    ┌─ Type? ── NO → Reject
+                    │
+Vehicle ────────────┼─ Available? ── NO → Reject
+                    │
+                    ├─ Capability? ── NO → Reject
+                    │
+                    └─ All pass → Eligible
+```
+
+---
+
+# 7. In mathematical terms
+
+We can represent each constraint as a Boolean function.
+
+For vehicle \(v\):
+
+$$
+C_1(v) = \text{TypeMatch}(v)
+$$
+
+$$
+C_2(v) = \text{Available}(v)
+$$
+
+$$
+C_3(v) = \text{CapabilityMatch}(v)
+$$
+
+A vehicle is eligible only when:
+
+$$
+Eligible(v) = C_1(v) \land C_2(v) \land C_3(v)
+$$
+
+Where \(\land\) means **AND**.
+
+So:
+
+```text
+A01:
+TypeMatch       = True
+Available       = True
+CapabilityMatch = True
+
+True AND True AND True
+= TRUE
+```
+
+Therefore:
+
+```text
+A01 → ELIGIBLE
+```
+
+But:
+
+```text
+A03:
+TypeMatch       = True
+Available       = True
+CapabilityMatch = False
+
+True AND True AND False
+= FALSE
+```
+
+Therefore:
+
+```text
+A03 → REJECTED
+```
+
+---
+
+# 8. The important part: hard vs soft constraints
+
+This distinction will be useful for our project.
+
+### Hard constraints
+
+If violated, the vehicle **cannot be selected**.
+
+Examples:
+
+```text
+Vehicle must be:
+✓ Correct type
+✓ Available
+✓ Operational
+✓ Required capability
+```
+
+These are handled by the **constraint filter**.
+
+### Soft constraints
+
+These don't eliminate the vehicle. They affect **how desirable it is**.
+
+For example:
+
+```text
+Vehicle A01 → 2 km away
+Vehicle A05 → 5 km away
+```
+
+Both are eligible.
+
+So distance should **not necessarily filter A05 out**.
+
+Instead:
+
+```text
+A01 → lower cost
+A05 → higher cost
+```
+
+That goes into our **cost function + Hungarian Algorithm** afterward.
+
+---
+
+# So the complete System 2 logic is
+
+```text
+                 System 1 Output
+                       ↓
+              Required Services
+                       ↓
+               Vehicle Database
+                       ↓
+             ┌─────────────────┐
+             │ HARD CONSTRAINTS│
+             └────────┬────────┘
+                      ↓
+             Type compatibility
+                      ↓
+                Availability
+                      ↓
+               Capability
+                      ↓
+             Operational status
+                      ↓
+              Eligible Vehicles
+                      ↓
+             ┌─────────────────┐
+             │   COST FUNCTION │
+             └────────┬────────┘
+                      ↓
+              Travel time
+              Distance
+              Workload
+              Priority
+                      ↓
+               Cost Matrix
+                      ↓
+          Hungarian Algorithm
+                      ↓
+              Final Allocation
+```
+
+So **constraint filtering itself doesn't decide which eligible vehicle is the best**.
+
+It answers only:
+
+> **"Which vehicles are allowed to participate in the allocation?"**
+
+Then the optimization algorithm answers:
+
+> **"Among those vehicles, which assignment gives the lowest overall cost?"**
+
+That's the clean technical separation we want in System 2.
+
+
+### **2. Cost Function**
+
+Calculate how "expensive" it is to assign each vehicle to an emergency.
+
+### **3. Assignment Optimization**
+
+Use the **Hungarian Algorithm** for the actual vehicle-to-emergency assignment.
+
+---
+
+## 1. Constraint Filtering
+
+This is the first algorithmic layer.
+
+We have:
+
+```text
+Emergency Requirements
+        +
+Vehicle Database
+        ↓
+Constraint Filtering
+        ↓
+Eligible Vehicles
+```
+
+For example:
+
+```text
+Emergency:
+Type = Medical
+Severity = Critical
+
+Required:
+Ambulance × 3
+```
+
+Vehicle database:
+
+```text
+A01 → Ambulance → Available → ICU
+A02 → Ambulance → Busy
+A03 → Ambulance → Available → Basic
+A04 → Police    → Available
+A05 → Ambulance → Available → ICU
+```
+
+The filtering algorithm removes:
+
+```text
+A02 → Busy ❌
+A04 → Wrong vehicle type ❌
+```
+
+Remaining:
+
+```text
+A01
+A03
+A05
+```
+
+This is basically **constraint satisfaction/filtering**, not AI learning.
+
+---
+
+# 2. Cost Function
+
+Now we need to mathematically represent how suitable each vehicle is.
+
+Instead of saying:
+
+> "A01 looks better."
+
+we calculate a **cost**.
+
+For example:
+
+```text
+Cost =
+    Travel Time Cost
+  + Capability Cost
+  + Workload Cost
+  + Distance Cost
+```
+
+Lower cost = better assignment.
+
+For example:
+
+```text
+             Travel   Capability   Workload
+A01             3          0           1
+A03             5          2           0
+A05             4          0           1
+```
+
+The exact formula will be designed by us.
+
+For example:
+
+$$
+C_{ij} =
+w_1T_{ij}
++w_2D_{ij}
++w_3M_{ij}
++w_4W_i
+$$
+
+Where:
+
+* \(T\) = estimated travel time
+* \(D\) = distance
+* \(M\) = capability mismatch
+* \(W\) = current workload
+* \(w_1,w_2,w_3,w_4\) = weights
+
+This gives us a **cost matrix**.
+
+---
+
+# 3. Hungarian Algorithm
+
+This is the important part.
+
+Suppose we have:
+
+```text
+3 emergency requirements
+
+E1 → Ambulance
+E2 → Ambulance
+E3 → Ambulance
+```
+
+and:
+
+```text
+A01
+A03
+A05
+A07
+```
+
+We calculate the cost of assigning every vehicle to every emergency:
+
+```text
+        E1    E2    E3
+A01     10     8     12
+A03      7     9      6
+A05      5    11      8
+A07      9     4      7
+```
+
+This becomes an **assignment problem**.
+
+The Hungarian Algorithm finds the assignment that minimizes the **total cost**.
+
+So instead of:
+
+```text
+Pick nearest vehicle
+Pick next nearest
+Pick next nearest
+```
+
+we do:
+
+```text
+                 Cost Matrix
+                     ↓
+             Hungarian Algorithm
+                     ↓
+              Optimal Assignment
+```
+
+That's the actual mathematical engine.
+
+---
+
+# 4. What happens with multiple emergencies?
+
+This is where it becomes much more interesting.
+
+Suppose:
+
+```text
+Emergency E101 → Critical
+Emergency E102 → High
+Emergency E103 → Moderate
+```
+
+and we have limited vehicles.
+
+We can create an overall cost that also incorporates **emergency priority**.
+
+For example:
+
+$$
+C_{ij} =
+TravelCost
++
+CapabilityCost
++
+WorkloadCost
++
+PriorityPenalty
+$$
+
+A critical emergency gets a much stronger penalty for delay.
+
+Then the optimization algorithm tries to minimize the **overall system cost**, rather than optimizing each emergency independently.
+
+---
+
+# So our actual System 2 stack becomes
+
+```text
+SYSTEM 2
+Emergency Vehicle Allocation Engine
+
+        Input
+          ↓
+┌───────────────────────┐
+│ Constraint Filtering  │
+└───────────┬───────────┘
+            ↓
+     Eligible Vehicles
+            ↓
+┌───────────────────────┐
+│ Cost Function         │
+│                       │
+│ ETA                   │
+│ Distance              │
+│ Capability            │
+│ Workload              │
+│ Emergencriority    │
+└───────────┬───────────┘
+            ↓
+       Cost Matrix
+            ↓
+┌───────────────────────┐
+│ Hungarian Algorithm   │
+└───────────┬───────────┘
+            ↓
+     Vehicle Assignment
+            ↓
+      Transport UI
+```
+
+### And this gives us a clean distinction:
+
+| System       | Technique                   |
+| ------------ | --------------------------- |
+| **System 1** | Expert System               |
+|              | Knowledge Base              |
+|              | Inference Engine            |
+|              | Forward Chaining            |
+| **System 2** | Constraint-based allocation |
+|              | Cost Function               |
+|              | Assignment Optimization     |
+|              | Hungarian Algorithm         |
+
+Then **System 3, Dynamic Route Planning**, can use another proper algorithm such as **A***.
+
+So the project isn't pretending that everything is "AI". Each subsyste m uses the computational technique that actually fits its problem. That's a much stronger architecture.
